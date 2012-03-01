@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="page-header">
+<h1>{{ portfolio.name }} <a href="../" class="btn">Back</a> </h1>
+</div>
+
+<form method="post" class="well">
+{% csrf_token %}
+{% if stock_not_found %}
+<p class="label label-info">{{ quote_name|capfirst }} not found</p>
+{% endif %}
+Company ticker <input name="quote" type="text" class="span2" placeholder=""> <input type="submit" value="Add to this portfolio" class="btn btn-primary">
+</form>
+
+
+<table class="table table-striped">
+<thead>
+
+<tr>
+<th>Name</th>
+<th>Market cap.</th>
+<th>Shares</th>
+<th>Shares owned</th>
+<th>Last price</th>
+<th>Money invested</th>
+<th>Current value</th>
+<th>Profit</th>
+</tr>
+
+</thead>
+  <tbody>
+
+
+{% for stock in stocks %}
+<tr>
+    <td><strong>{{ stock.stock.name }}</strong> <small>{{ stock.stock.stock_exchange }}</small></td>
+    <td>{{ stock.stock.cap }}</td>
+    <td>{{ stock.stock.shares }}</td>
+    <td>{{ stock.shares_owned }}</td>
+    <td><strong>{{ stock.stock.last_price }}</strong></td>
+    <td>{{ stock.money_spent }}</td>
+
+    <td>{{ stock.current_value }}</td>
+
+    <td class="{% if stock.profit < 0 %}lose{% else %}win{% endif %}">
+{{ stock.profit }}</td>
+
+    <td>
+<div class="btn-group">
+    <a class="btn btn-warning" href="{% url portfolio_buy portfolio.pk stock.pk %}">Buy</a>
+    {% if stock.shares_owned == 0 %}
+    <a class="btn" href="{% url portfolio_remove_stock portfolio.pk stock.pk %}">Remove</a>
+    {% else %}
+    <a href="{% url portfolio_sell  portfolio.pk stock.pk %}" class="btn btn-danger">Sell</a>
+    {% endif %}
+</div>
+
+    </td>
+
+</tr>
+{% endfor %}
+
+
+
+
+</tbody>
+
+<tfoot>
+<tr>
+    <td>Total</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td>{{ total_spent }}</td>
+    <td>{{ total_value }}</td>
+    <td class="{% if profit < 0 %}lose{% else %}win{% endif %}"><strong>{{ profit }}</strong></td>
+    <td><a href="{% url portfolio_update_shares portfolio.pk %}" class="btn">Update</a></td>
+</tr>
+</tfoot>
+
+</table>
+
+
+<div class="row">
+  <div class="span6">
+
+<h2>Latest operations</h2>
+
+<table class="table">
+<thead>
+
+<tr>
+<th>Action</th>
+<th>Amount</th>
+<th>Cash flow</th>
+<th>Time</th>
+</tr>
+
+</thead>
+<tbody>
+  {% for op in operations %}
+  <tr>
+    <td>{{ op }}</td>
+    <td>{{ op.amount }}</td>
+    <td>{{ op.diff_cash }}</td>
+    <td>{{ op.time }}</td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+
+  </div>
+  <div class="span6">
+
+<h2>Balance sheet</h2>
+
+<table class="table table-striped">
+<thead>
+
+
+<table class="table">
+<tbody>
+    <tr><td>Initial cash</td><td> {{ portfolio.initial_cash }}</td></tr>
+    <tr><td>Current cash</td><td> {{ portfolio.cash }}</td></tr>
+    <tr><td>Total portfolio value</td><td> {{ total_value }}</td></tr>
+    <tr><td>Total money spent</td><td> {{ total_spent }}</td></tr>
+    <tr><td>Possible profit in %</td><td class="{% if profit < 0 %}lose{% else %}win{% endif %}"> {{ profit_purcent }}%</td></tr>
+    <tr><td >Possible profit in $</td><td class="{% if profit < 0 %}lose{% else %}win{% endif %}"> {{ profit }}</td></tr>
+    <tr><td>Total cash value</td><td> {{ total_cash_value }}</td></tr>
+
+
+</tbody>
+</table>
+
+  </div>
+</div>
+
+
+{% endblock %}

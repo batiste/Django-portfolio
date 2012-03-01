@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="page-header">
+<h1>Personnal portfolio simulator</h1>
+</div>
+
+<form method="post" class="well">
+{% csrf_token %}
+<h2>Create a new portfolio</h2>
+<label>Portfolio name</label>
+<input name="portfolio_name" type="text" class="span3" placeholder="">
+<label>Initial cash in $
+<input name="initial_cash" type="text" class="span2"></label>
+<button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+<h2>Your Portfolios</h2>
+
+<ul>
+{% for p in portfolios %}
+<li><a href="/{{ p.id }}/">{{ p.name }}</a></li>
+{% endfor %}
+</ul>
+
+<a href="{% url portfolio_account %}" class="btn">Manage my account</a>
+
+{% endblock %}

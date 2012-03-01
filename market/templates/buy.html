@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="page-header">
+<h1>{{ operation_type|capfirst }} stock {{ pstock.stock.name }}</h1>
+
+</div>
+
+
+<form method="post"  class="well">
+{% csrf_token %}
+<p>You own {{ pstock.shares_owned }} stock at price {{ pstock.stock.last_price }} for a current value of {{ pstock.current_value }}.</p>
+<p>Amount you want to {{ operation_type|capfirst }} : <input name="amount" value="{{ amount }}" type="text" class="span2">
+<input type="submit" name="buy" value="{{ operation_type }}"  class="btn btn-primary"></p>
+{% if confirm %}
+    <p>Are you sure you want to {{ operation_type }} {{ amount }} {{ stock.name }} stock for a total of <strong>{{ total }}</strong>
+    <input type="submit" name="confirm" value="Confirm" class="btn btn-success"></p>
+{% endif %}
+</form>
+
+<a href="../.." class="btn">Cancel</a>
+
+
+{% endblock %}

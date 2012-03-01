@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="page-header">
+<h1>Account</h1>
+</div>
+
+<form method="post" class="well">
+{% csrf_token %}
+<label>Email <input name="new_email" type="text" value="{{ email }}"></label>
+<input type="submit" value="Update" class="btn btn-primary">
+</form>
+
+<a href="../" class="btn">Back</a>
+
+{% endblock %}
