@@ -12,6 +12,24 @@ def millify(n):
                       int(math.floor(math.log10(abs(n))/3.0))))
     return '%.2f %s'%(n/10**(3*millidx), millnames[millidx])
 
+def convert_number(number):
+    number = number.lower()
+    if number.endswith('b'):
+        number = float(number[:-1])
+        number = number * 1000000000
+        return number
+
+    if number.endswith('m'):
+        number = float(number[:-1])
+        number = number * 1000000
+        return number
+
+    try:
+        return float(number)
+    except:
+        return 0
+    return 0
+
 
 class Portfolio(models.Model):
 
@@ -44,8 +62,16 @@ class Stock(models.Model):
     market_cap = models.FloatField()
     last_price = models.FloatField()
 
+    # value measures
+    price_sales_ratio = models.FloatField(default=0)
+    dividend_yield = models.FloatField(default=0)
+
+    #volatility = models.FloatField(null=True)
+
     def shares(self):
-        return millify(self.market_cap / self.last_price)
+        if self.last_price != 0:
+            return millify(self.market_cap / self.last_price)
+        return 0
 
     def cap(self):
         return millify(self.market_cap)
@@ -130,3 +156,86 @@ class StockValue(models.Model):
     value = models.FloatField()
     time = models.DateTimeField(auto_now=True)
     stock = models.ForeignKey(Stock)
+
+
+
+class StockAnalysis(object):
+
+    def __init__(self, infos):
+        self.cap = convert_number(infos['market_cap'])
+        self.per = convert_number(infos['price_earnings_ratio'])
+        self.psr = convert_number(infos['price_sales_ratio'])
+        self.dividend_yield = convert_number(infos['dividend_yield'])
+        self.price_earnings_growth_ratio = convert_number(infos['price_earnings_growth_ratio'])
+
+        self.price = convert_number(infos['price'])
+        self.high_52 = convert_number(infos['52_week_high'])
+        self.low_52 = convert_number(infos['52_week_low'])
+
+    def price_52_bar(self):
+
+        max_value = self.high_52 - self.low_52
+        current_value = self.price - self.low_52
+        percent_low = int(current_value / max_value * 100)
+        return percent_low
+
+    def cap_display(self):
+        return millify(self.cap)
+
+    def company_cap_type(self):
+        if self.cap < 200000000:
+            return "Small"
+        if self.cap < 1000000000:
+            return "Middle"
+        if self.cap < 5000000000:
+            return "Large"
+        return "Very large"
+
+    def price_earnings_ratio_type(self):
+        if self.per < 6:
+            return "Low market confidence"
+        if self.per > 100:
+            return "Extremly high market confidence"
+        if self.per > 50:
+            return "Very high market confidence"
+        if self.per > 20:
+            return "High market confidence"
+        if self.per > 12:
+            return "Strong market confidence"
+
+        return "Average market confidence"
+
+    def growth_type(self):
+
+        if self.price_earnings_growth_ratio < 0.6:
+            return "Undervalued"
+
+        if self.price_earnings_growth_ratio < 0.8:
+            return "Possibly undervalued"
+
+        if self.price_earnings_growth_ratio > 2:
+            return "Possibly overvalued"
+
+        return "-"
+
+    def dividend_type(self):
+        if self.dividend_yield > 6:
+            return "Very high"
+        if self.dividend_yield > 3:
+            return "High"
+        if self.dividend_yield >= 2:
+            return "Average"
+        if self.dividend_yield < 2:
+            return "Low"
+        return "N/A"
+
+        return "Average market confidence"
+
+    def price_to_sales(self):
+        if self.psr < 1.5:
+            return "Low price"
+
+        if self.psr > 2:
+            return "High price"
+
+        return "Middle"

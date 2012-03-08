@@ -34,7 +34,7 @@ Company ticker <input name="quote" type="text" class="span2" placeholder=""> <in
 
 {% for stock in stocks %}
 <tr>
-    <td><strong>{{ stock.stock.name }}</strong> <small>{{ stock.stock.stock_exchange }}</small></td>
+    <td><strong><a href="http://www.google.com/finance?q={{ stock.stock.name }}" target="_blank">{{ stock.stock.name }}</a></strong> <small>{{ stock.stock.stock_exchange }}</small></td>
     <td>{{ stock.stock.cap }}</td>
     <td>{{ stock.stock.shares }}</td>
     <td>{{ stock.shares_owned }}</td>
@@ -48,6 +48,7 @@ Company ticker <input name="quote" type="text" class="span2" placeholder=""> <in
 
     <td>
 <div class="btn-group">
+    <a class="btn" href="{% url portfolio_analyse_stock portfolio.pk stock.pk %}">Analyse</a>
     <a class="btn btn-warning" href="{% url portfolio_buy portfolio.pk stock.pk %}">Buy</a>
     {% if stock.shares_owned == 0 %}
     <a class="btn" href="{% url portfolio_remove_stock portfolio.pk stock.pk %}">Remove</a>
