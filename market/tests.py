@@ -6,11 +6,14 @@ Replace this with more appropriate tests for your application.
 """
 
 from django.test import TestCase
-
+from market.models import normalize
 
 class SimpleTest(TestCase):
-    def test_basic_addition(self):
+
+    def test_normalize(self):
         """
-        Tests that 1 + 1 always equals 2.
         """
-        self.assertEqual(1 + 1, 2)
+        self.assertEqual(normalize(0.5, 10, bigger_better=True, limits=[0, 1]), 0.5)
+        self.assertEqual(normalize(0.5, -10, bigger_better=True, limits=[0, 1]), -0.5)
+        self.assertEqual(normalize(50, 10, bigger_better=False, limits=[0, 100]), 40)
+        self.assertEqual(normalize(50, 10, bigger_better=True, limits=[0, 100]), -40)

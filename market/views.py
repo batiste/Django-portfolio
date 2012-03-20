@@ -95,7 +95,7 @@ def portfolio(request, portfolio_pk):
         else:
             stock_not_found = True
 
-    stocks = PortfolioStock.objects.filter(portfolio=portfolio)
+    stocks = PortfolioStock.objects.filter(portfolio=portfolio).order_by("-stock__value_score")
 
     operations = Operation.objects.filter(portfolio_stock__portfolio=portfolio)[0:10]
 
@@ -167,6 +167,7 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
         date = datetime.datetime.strptime(p[0],'%Y-%m-%d')
         history.append({"date":date, "close_value":close_v})
 
+    # today first
     history = sorted(history, key=lambda p: p['date'])
     assert history[1]['date'] > history[0]['date']
 
@@ -183,20 +184,25 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
         v['volatility'] = round(calculate_historical_volatility(history[-v['days']:]), 2)
         v['start_date'] = history[-v['days']:][0]['date']
 
-    current_v = volatilities[-1:]
+    stock_analysis.volatility = volatilities[1]['volatility']
+    stock.volatility = stock_analysis.volatility
 
-    price_trends = [
-        {'days':50, 'interval':2},
-        {'days':100, 'interval':10},
-        {'days':300, 'interval':20},
-        {'days':600, 'interval':30},
-    ]
-    for p in price_trends:
-        if len(history) < p['days']:
-            p['days'] = len(history)
-        trend = calculate_historical_price_trend(history[-p['days']:], interval=p['interval'])
-        p.update(trend)
-        p['start_date'] = history[-p['days']:][0]['date']
+
+    start = 0
+    interval = int(len(history) / 5.0)
+    price_trends = []
+    while len(history) > (start + interval) and interval > 0:
+        trend = calculate_historical_price_trend(history[start:start+interval])
+        price_trends.append(trend)
+        start = start + interval
+        #if len(history) < (start + interval):
+        #    interval = len(history) - start - 1
+
+    trend = calculate_historical_price_trend(history)
+    price_trends.append(trend)
+    stock_analysis.trend = trend
+    stock.value_score = stock_analysis.value_score_analysis()
+    stock.save()
 
     c = {
         'price_trends':price_trends,
@@ -224,42 +230,28 @@ def calculate_historical_volatility(history):
     return std * math.sqrt(len(history))
 
 
-def calculate_historical_price_trend(history, interval=50):
+def calculate_historical_price_trend(history):
 
-    # we go backward
+    start_date = history[0]['date']
+    start_price = history[0]['close_value']
+    # we go backward in time
     history = sorted(history, key=lambda p: p['date'], reverse=True)
+    end_date = history[0]['date']
+    end_price = history[0]['close_value']
 
-    last_close_value = history[0]['close_value']
-
-    up_trend_acc = 0
-    down_trend_acc = 0
-    up = 0
-    down = 0
-    i = 0
-
-    for p in history:
-        i = i + 1
-        if i >= interval:
-            i = 0
-            if p['close_value'] < last_close_value:
-                up_trend_acc += last_close_value - p['close_value']
-                up += 1
-            elif p['close_value'] > last_close_value:
-                down_trend_acc += p['close_value'] - last_close_value
-                down += 1
-            last_close_value = p['close_value']
-
-    up_percent = float(up) / (up + down) * 100
-    total_mouvement = float(down_trend_acc + up_trend_acc)
     today = history[0]['close_value']
-    start = history[len(history)-1]['close_value']
-    gain = round((100 * (today - start)) / float(start), 2)
+    gain = round((100 * (today - start_price)) / float(start_price), 2)
+
+    year_average_change = round(gain / len(history) * 252, 2)
 
     return {
-        'up_percent':round(up_percent, 1),
-        'mouvement_gain':round(100 * up_trend_acc / total_mouvement, 1),
-        'mouvement_loss':round(100 * down_trend_acc / total_mouvement, 1),
-        'gain':gain
+        'gain':gain,
+        'days':len(history),
+        'start_price':start_price,
+        'end_price':end_price,
+        'start_date': start_date,
+        'end_date': end_date,
+        'year_average_change': year_average_change
     }
 
 

@@ -20,7 +20,7 @@ Company ticker <input name="quote" type="text" class="span2" placeholder=""> <in
 <tr>
 <th>Name</th>
 <th>Market cap.</th>
-<th>Shares</th>
+<th>Value score</th>
 <th>Shares owned</th>
 <th>Last price</th>
 <th>Money invested</th>
@@ -36,7 +36,7 @@ Company ticker <input name="quote" type="text" class="span2" placeholder=""> <in
 <tr>
     <td><strong><a href="http://www.google.com/finance?q={{ stock.stock.name }}" target="_blank">{{ stock.stock.name }}</a></strong> <small>{{ stock.stock.stock_exchange }}</small></td>
     <td>{{ stock.stock.cap }}</td>
-    <td>{{ stock.stock.shares }}</td>
+    <td>{{ stock.stock.value_score|floatformat }}</td>
     <td>{{ stock.shares_owned }}</td>
     <td><strong>{{ stock.stock.last_price }}</strong></td>
     <td>{{ stock.money_spent }}</td>
@@ -53,7 +53,7 @@ Company ticker <input name="quote" type="text" class="span2" placeholder=""> <in
     {% if stock.shares_owned == 0 %}
     <a class="btn" href="{% url portfolio_remove_stock portfolio.pk stock.pk %}">Remove</a>
     {% else %}
-    <a href="{% url portfolio_sell  portfolio.pk stock.pk %}" class="btn btn-danger">Sell</a>
+    <a href="{% url portfolio_sell portfolio.pk stock.pk %}" class="btn btn-danger">Sell</a>
     {% endif %}
 </div>
 

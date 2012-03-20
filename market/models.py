@@ -2,6 +2,19 @@ from django.db import models
 from django.contrib.auth.models import User
 import math
 
+def normalize(neutral_point, value, bigger_better=True, limits=[]):
+
+    if limits:
+        if value < limits[0]:
+            value = limits[0]
+        if value > limits[1]:
+            value = limits[1]
+
+    if bigger_better:
+        return value - neutral_point
+    else:
+        return neutral_point - value
+
 
 def millify(n):
     # n==0 create an error
@@ -13,6 +26,10 @@ def millify(n):
     return '%.2f %s'%(n/10**(3*millidx), millnames[millidx])
 
 def convert_number(number):
+
+    if number == "N/A":
+        return None
+
     number = number.lower()
     if number.endswith('b'):
         number = float(number[:-1])
@@ -66,7 +83,8 @@ class Stock(models.Model):
     price_sales_ratio = models.FloatField(default=0)
     dividend_yield = models.FloatField(default=0)
 
-    #volatility = models.FloatField(null=True)
+    volatility = models.FloatField(null=True)
+    value_score = models.FloatField(null=True)
 
     def shares(self):
         if self.last_price != 0:
@@ -158,22 +176,93 @@ class StockValue(models.Model):
     stock = models.ForeignKey(Stock)
 
 
-
 class StockAnalysis(object):
 
     def __init__(self, infos):
         self.cap = convert_number(infos['market_cap'])
         self.per = convert_number(infos['price_earnings_ratio'])
-        self.psr = convert_number(infos['price_sales_ratio'])
+        self.price_sales_ratio = convert_number(infos['price_sales_ratio'])
         self.dividend_yield = convert_number(infos['dividend_yield'])
         self.price_earnings_growth_ratio = convert_number(infos['price_earnings_growth_ratio'])
 
+        self.volatility = None
         self.price = convert_number(infos['price'])
         self.high_52 = convert_number(infos['52_week_high'])
         self.low_52 = convert_number(infos['52_week_low'])
 
-    def price_52_bar(self):
+        self.price_book_ratio = convert_number(infos['price_book_ratio'])
 
+        self.value_score = 0
+        self.growth_score = 0
+
+    def value_score_analysis(self):
+
+        value_score = 0
+
+        if self.price_book_ratio is not None:
+            value_score += normalize(2, self.price_book_ratio,
+                bigger_better=False, limits=[0, 10]) / 2.0
+
+        # low volatility is better
+        value_score += normalize(50, self.volatility,
+            bigger_better=False, limits=[0, 100]) / 10.0
+
+        # could it be an opportunity ?
+        value_score += normalize(50, self.price_52_percent(),
+            bigger_better=False, limits=[0, 75]) / 30.0
+
+        if self.dividend_yield is not None:
+            # dividend yield is very important for large company
+            if self.cap > 1000000000:
+                value_score += self.dividend_yield * 2
+            else:
+                value_score += self.dividend_yield
+
+        if self.price_sales_ratio is not None:
+            # price to sales is the most important factor
+            value_score += normalize(1.5, self.price_sales_ratio,
+                bigger_better=False, limits=[0, 5]) * 3
+
+        value_score += normalize(0, self.trend['year_average_change'],
+            bigger_better=True) / 5.0
+
+        self.value_score = value_score
+
+        return value_score
+
+    def price_book_ratio_analysis(self):
+        if self.price_book_ratio is None:
+             return "-"
+
+        if self.price_book_ratio < 1:
+            return "Very good"
+
+        if self.price_book_ratio < 2:
+            return "Good"
+
+        if self.price_book_ratio > 8:
+            return "Very high"
+
+        if self.price_book_ratio > 5:
+            return "High"
+
+        return "-"
+
+    def volatility_analysis(self):
+
+        if self.volatility < 15:
+            return "%.2f%% is a very low volatility value" % self.volatility
+
+        if self.volatility < 20:
+            return "%.2f%% is a low volatility value" % self.volatility
+
+        if self.volatility > 25:
+            return "%.2f%% is a high volatility value" % self.volatility
+
+        return "%.2f%% is an average volatility value" % self.volatility
+
+
+    def price_52_percent(self):
         max_value = self.high_52 - self.low_52
         current_value = self.price - self.low_52
         percent_low = int(current_value / max_value * 100)
@@ -182,7 +271,10 @@ class StockAnalysis(object):
     def cap_display(self):
         return millify(self.cap)
 
-    def company_cap_type(self):
+    def company_cap_analysis(self):
+        if self.cap is None:
+             return "-"
+
         if self.cap < 200000000:
             return "Small"
         if self.cap < 1000000000:
@@ -191,34 +283,40 @@ class StockAnalysis(object):
             return "Large"
         return "Very large"
 
-    def price_earnings_ratio_type(self):
+    def price_earnings_ratio_analysis(self):
+        if self.per is None:
+             return "-"
+
         if self.per < 6:
-            return "Low market confidence"
-        if self.per > 100:
-            return "Extremly high market confidence"
-        if self.per > 50:
-            return "Very high market confidence"
+            return "The market expect a moderate earning growth"
+        if self.per > 80:
+            return "The market expect a very high earning growth"
         if self.per > 20:
-            return "High market confidence"
+            return "The market expect a high earning growth"
         if self.per > 12:
-            return "Strong market confidence"
+            return "The market expect a strong earning growth"
 
         return "Average market confidence"
 
-    def growth_type(self):
-
-        if self.price_earnings_growth_ratio < 0.6:
-            return "Undervalued"
+    def growth_analysis(self):
+        if self.price_earnings_growth_ratio is None:
+             return "-"
 
         if self.price_earnings_growth_ratio < 0.8:
-            return "Possibly undervalued"
+            return "Strong growth"
 
-        if self.price_earnings_growth_ratio > 2:
-            return "Possibly overvalued"
+        if self.price_earnings_growth_ratio < 0.95:
+            return "Growth"
+
+        if self.price_earnings_growth_ratio > 1:
+            return "-"
 
         return "-"
 
-    def dividend_type(self):
+    def dividend_analysis(self):
+        if self.dividend_yield is None:
+             return "-"
+
         if self.dividend_yield > 6:
             return "Very high"
         if self.dividend_yield > 3:
@@ -232,10 +330,13 @@ class StockAnalysis(object):
         return "Average market confidence"
 
     def price_to_sales(self):
-        if self.psr < 1.5:
+        if self.price_sales_ratio is None:
+             return "-"
+
+        if self.price_sales_ratio < 1.5:
             return "Low price"
 
-        if self.psr > 2:
+        if self.price_sales_ratio > 2:
             return "High price"
 
         return "Middle"

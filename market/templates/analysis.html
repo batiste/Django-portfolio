@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="page-header">
+<h1>Analysis of stock {{ stock.name }} <a href="../.." class="btn">Back</a> </h1>
+</div>
+
+<div class="row">
+<div class="span7">
+
+
+<table class="table table-striped">
+<caption>General informations</caption>
+<thead>
+<thead>
+<tr>
+<th style="width:30%">
+Label
+</th>
+<th style="width:15%">
+Value
+</th>
+<th>
+Analysis
+</th>
+</tr>
+</thead>
+
+</thead>
+<tbody>
+<tr><td>Company size</td><td>{{ stock_analysis.cap_display }}</td><td>{{ stock_analysis.company_cap_analysis }}</td></tr>
+<tr><td>Price to sales ratio</td><td>{{ infos.price_sales_ratio }}</td><td>{{ stock_analysis.price_to_sales }}</td></tr>
+
+<tr><td>Price to book ratio</td><td>{{ infos.price_book_ratio }}</td><td>{{ stock_analysis.price_book_ratio_analysis }}</td></tr>
+
+<!--<tr><td>EBITDA</td><td>{{ infos.ebitda }}</td><td>{{ stock_analysis.ebitda_analysis }}</td></tr>
+
+
+<tr><td>Earnings by share</td><td>{{ infos.earnings_per_share }}</td><td></td></tr>-->
+
+
+<tr><td>Price to earnings ration</td><td>{{ infos.price_earnings_ratio }}</td><td>{{ stock_analysis.price_earnings_ratio_analysis }}</td></tr>
+
+<tr><td>Price earnings growth ratio</td><td>{{ stock_analysis.price_earnings_growth_ratio }}</td><td>{{ stock_analysis.growth_analysis }}</td></tr>
+
+<tr><td>Dividend yield</td><td>{{ infos.dividend_yield }}</td><td>{{ stock_analysis.dividend_analysis }}</td></tr>
+
+
+<tr><td>Price</td><td>{{ infos.price|floatformat }}</td> <td>Current price against 52 weeks low and high
+
+<div class="progress">
+  <div class="bar"
+       style="width: {{ stock_analysis.price_52_percent }}%;">{{ stock_analysis.price_52_percent }}%</div>
+</div>
+
+
+</td></tr>
+<!--<tr><td>52 week high</td><td>{{ infos.52_week_high }}</td><td></td></tr>
+<tr><td>52 week low</td><td>{{ infos.52_week_low }}</td><td></td></tr>-->
+
+
+<tr><td>Value score</td><td>{{ stock_analysis.value_score_analysis|floatformat }}</td><td>
+
+The value score is calculated using the price to book, the volatility,
+the 52 weeks low/high, the dividend yield, the price to sales
+and the average growth by year.
+
+</td></tr>
+
+
+</tr>
+</tbody>
+</table>
+
+
+
+</div>
+
+
+<div class="span5">
+
+
+<table class="table table-striped">
+<caption>Historic volatility</caption>
+<thead>
+<tr>
+<th>
+Trading days
+</th>
+<th>
+Date
+</th>
+<th>
+Volatility
+</th>
+</tr>
+</thead>
+<tbody>
+{% for v in volatilities %}
+<tr><th>{{ v.days }} days</th>
+<td>{{ v.start_date|date:"d b Y" }}</td>
+<td>{{ v.volatility }}%</td>
+{% endfor %}
+</tbody>
+</table>
+
+
+
+</div>
+</div>
+
+
+
+
+
+<table class="table table-striped">
+<caption>Historic price trend</caption>
+<thead>
+<tr>
+<th>
+Trading days
+</th>
+<th>
+Start Date
+</th>
+<th>
+End Date
+</th>
+<th>
+Start Price
+</th>
+<th>
+End Price
+</th>
+<th>
+Period Growth
+</th>
+
+<th>
+Growth by Year
+</th>
+
+</tr>
+</thead>
+<tbody>
+
+{% for price_trend in price_trends %}
+<tr>
+<th>{{ price_trend.days }} days</th>
+<td>{{ price_trend.start_date|date:"d b Y" }}</td>
+<td>{{ price_trend.end_date|date:"d b Y" }}</td>
+
+<td>
+  {{ price_trend.start_price }}
+</td>
+
+<td>
+  {{ price_trend.end_price }}
+</td>
+
+<td>
+  {{ price_trend.gain }}%
+</td>
+
+<td class="{% if price_trend.year_average_change < 0 %}lose{% else %}win{% endif %}">
+  {{ price_trend.year_average_change }}%
+</td>
+
+
+
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+
+
+
+{% endblock %}
