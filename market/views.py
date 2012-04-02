@@ -1,7 +1,7 @@
 # Create your views here.
 from django import http
 from django.shortcuts import render_to_response
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login as django_login
 from market.models import Stock, Operation, Portfolio, PortfolioStock, StockAnalysis, convert_number
 from market.authenticate import create_user
 from django.core.context_processors import csrf
@@ -28,7 +28,7 @@ def index(request):
         if not request.user.is_authenticated():
             user = create_user()
             user = authenticate(user=user)
-            login(request, user)
+            django_login(request, user)
 
         p = Portfolio.objects.create(name=portfolio_name,
             owner=request.user, cash=initial_cash, initial_cash=initial_cash)
@@ -48,21 +48,47 @@ def index(request):
     return render_to_response('index.html', c)
 
 
+def login(request):
+
+    auth_failed = False
+
+    if request.method == 'POST':
+        try:
+            user = User.objects.get(email=request.POST['email'])
+        except User.DoesNotExist:
+            user = None
+        password = User.objects.get(email=request.POST['password'])
+        user = authenticate(email, password)
+        if user:
+            print django_login(request, user)
+        else:
+            auth_failed = True
+
+
+    return render_to_response('login.html', {
+        'auth_failed':auth_failed
+    })
+
+
 def manage_account(request):
 
     if not request.user.is_authenticated():
         user = create_user()
         user = authenticate(user=user)
-        login(request, user)
+        django_login(request, user)
     else:
         user = request.user
 
     new_email = request.POST.get('new_email', None)
+    new_password = request.POST.get('new_password', None)
     if new_email:
         user.email = new_email
-        user.save()
+    if new_password:
+        user.set_password(new_password)
+    user.save()
 
     c = {
+        'updated':new_password or new_email,
         'user':user,
         'email':user.email
     }

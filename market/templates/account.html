@@ -7,7 +7,12 @@
 
 <form method="post" class="well">
 {% csrf_token %}
+{% if updated %}
+<p class="alert alert-success">Updated</p>
+{% endif %}
+
 <label>Email <input name="new_email" type="text" value="{{ email }}"></label>
+<label>Password <input name="new_password" type="text" value=""></label>
 <input type="submit" value="Update" class="btn btn-primary">
 </form>
 
