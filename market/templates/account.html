@@ -2,7 +2,7 @@
 
 {% block main %}
 <div class="page-header">
-<h1>Account</h1>
+<h1>Account <a href="../.." class="btn">Back</a></h1>
 </div>
 
 <form method="post" class="well">
@@ -10,12 +10,16 @@
 {% if updated %}
 <p class="alert alert-success">Updated</p>
 {% endif %}
+{% if email_already_used %}
+<p class="alert alert-fail">This email is already used</p>
+{% endif %}
+
 
 <label>Email <input name="new_email" type="text" value="{{ email }}"></label>
 <label>Password <input name="new_password" type="text" value=""></label>
 <input type="submit" value="Update" class="btn btn-primary">
 </form>
 
-<a href="../" class="btn">Back</a>
+<a href="{% url portfolio_logout %}" class="btn">Logout</a>
 
 {% endblock %}

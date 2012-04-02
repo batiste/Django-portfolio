@@ -1,7 +1,8 @@
 # Create your views here.
 from django import http
 from django.shortcuts import render_to_response
-from django.contrib.auth import authenticate, login as django_login
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.contrib.auth.models import User
 from market.models import Stock, Operation, Portfolio, PortfolioStock, StockAnalysis, convert_number
 from market.authenticate import create_user
 from django.core.context_processors import csrf
@@ -52,22 +53,32 @@ def login(request):
 
     auth_failed = False
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST.get('email'):
+        email = request.POST.get('email')
+        password = request.POST.get('password', '')
         try:
-            user = User.objects.get(email=request.POST['email'])
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = None
-        password = User.objects.get(email=request.POST['password'])
-        user = authenticate(email, password)
+        user = authenticate(email=email, password=password)
         if user:
-            print django_login(request, user)
+            result = django_login(request, user)
+            return http.HttpResponseRedirect('..')
         else:
             auth_failed = True
 
+    c = {
+        'auth_failed':auth_failed,
+        'authenticated':request.user.is_authenticated()
+    }
+    c.update(csrf(request))
 
-    return render_to_response('login.html', {
-        'auth_failed':auth_failed
-    })
+    return render_to_response('login.html', c)
+
+
+def logout(request):
+    django_logout(request)
+    return http.HttpResponseRedirect('..')
 
 
 def manage_account(request):
@@ -81,8 +92,14 @@ def manage_account(request):
 
     new_email = request.POST.get('new_email', None)
     new_password = request.POST.get('new_password', None)
-    if new_email:
-        user.email = new_email
+    email_already_used = False
+    if new_email and user.email != new_email:
+        try:
+            user = User.objects.get(email=email)
+            email_already_used = True
+        except User.DoesNotExist:
+            user.email = new_email
+
     if new_password:
         user.set_password(new_password)
     user.save()
@@ -90,6 +107,7 @@ def manage_account(request):
     c = {
         'updated':new_password or new_email,
         'user':user,
+        'email_already_used':email_already_used,
         'email':user.email
     }
     c.update(csrf(request))
@@ -165,7 +183,6 @@ def update_shares(request, portfolio_pk):
 
         stock.save()
     return http.HttpResponseRedirect('..')
-
 
 
 def analyze_stock(request, portfolio_pk, portfolio_stock_pk):

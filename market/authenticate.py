@@ -6,8 +6,7 @@ from django.contrib.auth.backends import ModelBackend
 def create_user():
     return User.objects.create(username='anon:'+str(uuid.uuid4()))
 
-
-class AnonymousBackend(object):
+class MarketBackend(object):
     """
     Authenticate anonymous users
     """

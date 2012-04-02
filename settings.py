@@ -103,7 +103,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'market.authenticate.AnonymousBackend',
+    'market.authenticate.MarketBackend',
     'market.authenticate.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
