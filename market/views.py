@@ -93,19 +93,26 @@ def manage_account(request):
     new_email = request.POST.get('new_email', None)
     new_password = request.POST.get('new_password', None)
     email_already_used = False
+    email_updated = False
+
     if new_email and user.email != new_email:
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email=new_email)
             email_already_used = True
         except User.DoesNotExist:
             user.email = new_email
+            if not email_already_used:
+                user.save()
+                email_updated = True
 
+    password_updated = False
     if new_password:
         user.set_password(new_password)
-    user.save()
+        password_updated = True
 
     c = {
-        'updated':new_password or new_email,
+        'password_updated':password_updated,
+        'email_updated':email_updated,
         'user':user,
         'email_already_used':email_already_used,
         'email':user.email
@@ -196,7 +203,6 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
 
     stock = pstock.stock
     infos = ystockquote.get(stock.name)
-    print infos
     stock_analysis = StockAnalysis(infos)
 
     historical_prices = ystockquote.legacy.get_historical_prices(stock.name,

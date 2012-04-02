@@ -7,15 +7,19 @@
 
 <form method="post" class="well">
 {% csrf_token %}
-{% if updated %}
-<p class="alert alert-success">Updated</p>
-{% endif %}
-{% if email_already_used %}
-<p class="alert alert-fail">This email is already used</p>
+
+
+{% if email_updated %}
+<p class="alert alert-success">Email updated</p>
 {% endif %}
 
 
 <label>Email <input name="new_email" type="text" value="{{ email }}"></label>
+
+{% if password_updated %}
+<p class="alert alert-success">Password udpated</p>
+{% endif %}
+
 <label>Password <input name="new_password" type="text" value=""></label>
 <input type="submit" value="Update" class="btn btn-primary">
 </form>

@@ -66,6 +66,10 @@ class Portfolio(models.Model):
         profit = total_value - total_spent
         return total_value, total_spent, profit
 
+    def profit_percent(self):
+        total_value, total_spent, profit = self.balance_sheet()
+        return profit / total_spent * 100
+
 
 class Stock(models.Model):
 
@@ -139,7 +143,8 @@ class PortfolioStock(models.Model):
 
 
 class Operation(models.Model):
-    """
+    """django round
+
     Buy or sell of a stock
     """
 

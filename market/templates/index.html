@@ -5,6 +5,8 @@
 <h1>Personnal portfolio simulator</h1>
 </div>
 
+<div class="span5">
+
 <form method="post" class="well">
 {% csrf_token %}
 <h2>Create a new portfolio</h2>
@@ -15,13 +17,35 @@
 <button type="submit" class="btn btn-primary">Create</button>
 </form>
 
-<h2>Your Portfolios</h2>
+{% if portfolios %}
 
-<ul>
+<table class="table table-striped">
+<caption>Your Portfolios</caption>
+<thead>
+<thead>
+<tr>
+<th>
+Name
+</th>
+<th>
+Performance
+</th>
+</tr>
+</thead>
+
+</thead>
+<tbody>
+
 {% for p in portfolios %}
-<li><a href="/{{ p.id }}/">{{ p.name }}</a></li>
+<tr><td><a href="/{{ p.id }}/">{{ p.name }}</td><td class="{% if p.profit_percent < 0 %}lose{% else %}win{% endif %}">{{ p.profit_percent|floatformat }}%</td></tr>
 {% endfor %}
-</ul>
+</tbody>
+</table>
+
+{% endif %}
+
+</div>
+<div class="span6">
 
 {% if authenticated %}
 <a href="{% url portfolio_account %}" class="btn">Manage my account</a>
@@ -37,5 +61,7 @@
 <a href="{% url portfolio_account %}" class="btn">Create an account</a>
 
 {% endif %}
+
+</div>
 
 {% endblock %}
