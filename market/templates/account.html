@@ -9,9 +9,16 @@
 {% csrf_token %}
 
 
+
 {% if email_updated %}
 <p class="alert alert-success">Email updated</p>
 {% endif %}
+
+
+{% if email_already_used %}
+<p class="alert alert-warning">Email already used</p>
+{% endif %}
+
 
 
 <label>Email <input name="new_email" type="text" value="{{ email }}"></label>
