@@ -17,7 +17,7 @@
 <h3>Login</h3>
 <form action="{% url portfolio_login %}" method="post">
 {% csrf_token %}
-<label for="email">Email</label><input type="text" name="email" value="" id="email" />
+<label for="email">Email</label><input type="text" name="email" value="{{ email }}" id="email" />
 <label for="password">Password</label><input type="password" name="password" value="" id="password" />
 <p><input type="submit"  class="btn" value="Login"></p>
 </form>

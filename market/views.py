@@ -54,7 +54,7 @@ def index(request):
 def login(request):
 
     auth_failed = False
-
+    email = ""
     if request.method == 'POST' and request.POST.get('email'):
         email = request.POST.get('email')
         password = request.POST.get('password', '')
@@ -70,6 +70,7 @@ def login(request):
             auth_failed = True
 
     c = {
+        'email':email,
         'auth_failed':auth_failed,
         'authenticated':request.user.is_authenticated()
     }
@@ -102,14 +103,17 @@ def manage_account(request):
             user = User.objects.get(email=new_email)
             email_already_used = True
         except User.DoesNotExist:
+            pass
+
+        if not email_already_used:
             user.email = new_email
-            if not email_already_used:
-                user.save()
-                email_updated = True
+            user.save()
+            email_updated = True
 
     password_updated = False
     if new_password:
         user.set_password(new_password)
+        user.save()
         password_updated = True
 
     c = {
