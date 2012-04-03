@@ -218,6 +218,7 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
     history = []
     historical_prices = historical_prices[1:]
     for p in historical_prices:
+        # error index out of range here
         close_v = float(p[4])
         date = datetime.datetime.strptime(p[0],'%Y-%m-%d')
         history.append({"date":date, "close_value":close_v})

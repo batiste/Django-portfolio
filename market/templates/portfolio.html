@@ -35,7 +35,7 @@ Company quote <input name="quote" type="text" class="span2" placeholder=""> <inp
 
 {% for stock in stocks %}
 <tr>
-    <td><strong><a href="http://www.google.com/finance?q={{ stock.stock.name }}" target="_blank">{{ stock.stock.name }}</a></strong> <small>{{ stock.stock.stock_exchange }}</small></td>
+    <td><strong><a href="http://finance.yahoo.com/echarts?s={{ stock.stock.name }}" target="_blank">{{ stock.stock.name }}</a></strong> <small>{{ stock.stock.stock_exchange }}</small></td>
     <td>{{ stock.stock.cap }}</td>
     <td>{{ stock.stock.value_score|floatformat }}</td>
     <td>{{ stock.shares_owned }}</td>
