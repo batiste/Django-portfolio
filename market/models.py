@@ -68,6 +68,8 @@ class Portfolio(models.Model):
 
     def profit_percent(self):
         total_value, total_spent, profit = self.balance_sheet()
+        if total_spent <= 0:
+            return 0
         return profit / total_spent * 100
 
 
@@ -212,14 +214,15 @@ class StockAnalysis(object):
         value_score += normalize(50, self.volatility,
             bigger_better=False, limits=[0, 100]) / 10.0
 
-        # could it be an opportunity ?
+        # could it be an opportunity on 52 weeks
         value_score += normalize(50, self.price_52_percent(),
             bigger_better=False, limits=[0, 75]) / 30.0
 
         if self.dividend_yield is not None:
-            # dividend yield is very important for large company
+            # dividend yield is a important factor
+            # for large company
             if self.cap > 1000000000:
-                value_score += self.dividend_yield * 2
+                value_score += self.dividend_yield * 1.5
             else:
                 value_score += self.dividend_yield
 

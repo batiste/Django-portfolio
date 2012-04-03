@@ -10,6 +10,7 @@ import ystockquote
 import datetime
 import numpy
 import math
+from django.core.urlresolvers import reverse
 
 
 def check_ownership(request, portfolio=None, pstock=None):
@@ -33,7 +34,8 @@ def index(request):
 
         p = Portfolio.objects.create(name=portfolio_name,
             owner=request.user, cash=initial_cash, initial_cash=initial_cash)
-        return http.HttpResponseRedirect('/portfolio/%d/' % p.pk)
+        url = reverse('portfolio', kwargs={'portfolio_pk': p.pk})
+        return http.HttpResponseRedirect(url)
 
     if request.user.is_authenticated():
         portfolios = Portfolio.objects.filter(owner=request.user)
