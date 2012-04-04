@@ -86,8 +86,8 @@ class Stock(models.Model):
     last_price = models.FloatField()
 
     # value measures
-    price_sales_ratio = models.FloatField(default=0)
-    dividend_yield = models.FloatField(default=0)
+    price_sales_ratio = models.FloatField(default=0, null=True)
+    dividend_yield = models.FloatField(default=0, null=True)
 
     volatility = models.FloatField(null=True)
     value_score = models.FloatField(null=True)
