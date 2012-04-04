@@ -82,8 +82,8 @@ class Stock(models.Model):
     stock_exchange = models.CharField(max_length=150,
         blank=True)
 
-    market_cap = models.FloatField()
-    last_price = models.FloatField()
+    market_cap = models.FloatField(default=0, null=True)
+    last_price = models.FloatField(default=0, null=True)
 
     # value measures
     price_sales_ratio = models.FloatField(default=0, null=True)
