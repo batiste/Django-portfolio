@@ -271,6 +271,8 @@ class StockAnalysis(object):
 
 
     def price_52_percent(self):
+        if self.high_52 is None or self.low_52 is None:
+            return 50
         max_value = self.high_52 - self.low_52
         current_value = self.price - self.low_52
         percent_low = int(current_value / max_value * 100)
