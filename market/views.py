@@ -209,6 +209,7 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
 
     stock = pstock.stock
     infos = ystockquote.get(stock.name)
+    #print infos['test']
     stock_analysis = StockAnalysis(infos)
 
     historical_prices = ystockquote.legacy.get_historical_prices(stock.name,

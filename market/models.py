@@ -189,6 +189,7 @@ class StockAnalysis(object):
         self.cap = convert_number(infos['market_cap'])
         self.per = convert_number(infos['price_earnings_ratio'])
         self.price_sales_ratio = convert_number(infos['price_sales_ratio'])
+        self.ebitda = convert_number(infos['ebitda'])
         self.dividend_yield = convert_number(infos['dividend_yield'])
         self.price_earnings_growth_ratio = convert_number(infos['price_earnings_growth_ratio'])
 
@@ -207,16 +208,20 @@ class StockAnalysis(object):
         value_score = 0
 
         if self.price_book_ratio is not None:
-            value_score += normalize(2, self.price_book_ratio,
-                bigger_better=False, limits=[0, 10]) / 2.0
+            value_score += normalize(1.5, math.sqrt(self.price_book_ratio),
+                bigger_better=False, limits=[0, 1000])
 
-        # low volatility is better
+        # price / earnings is an important ratio
+        if self.per is not None:
+            value_score += 100 / self.per
+
+        # low volatility is preferable
         value_score += normalize(50, self.volatility,
-            bigger_better=False, limits=[0, 100]) / 10.0
+            bigger_better=False, limits=[0, 1000]) / 10.0
 
-        # could it be an opportunity on 52 weeks
+        # could it be an opportunity on 52 weeks ?
         value_score += normalize(50, self.price_52_percent(),
-            bigger_better=False, limits=[0, 75]) / 30.0
+            bigger_better=False, limits=[0, 100]) / 40.0
 
         if self.dividend_yield is not None:
             # dividend yield is a important factor
@@ -227,12 +232,13 @@ class StockAnalysis(object):
                 value_score += self.dividend_yield
 
         if self.price_sales_ratio is not None:
-            # price to sales is the most important factor
+            # price to sales is an important factor
             value_score += normalize(1.5, self.price_sales_ratio,
-                bigger_better=False, limits=[0, 5]) * 3
+                bigger_better=False, limits=[0, 5]) * 2
 
+        # the past cannot predict the future: 100% growth == 5 points
         value_score += normalize(0, self.trend['year_average_change'],
-            bigger_better=True) / 5.0
+            bigger_better=True) / 20.0
 
         self.value_score = value_score
 
@@ -294,19 +300,18 @@ class StockAnalysis(object):
         return "Very large"
 
     def price_earnings_ratio_analysis(self):
+
         if self.per is None:
              return "-"
 
-        if self.per < 6:
-            return "The market expect a moderate earning growth"
-        if self.per > 80:
-            return "The market expect a very high earning growth"
-        if self.per > 20:
-            return "The market expect a high earning growth"
-        if self.per > 12:
-            return "The market expect a strong earning growth"
+        if self.per < 16:
+            return "Very good"
+        if self.per < 25:
+            return "Good"
+        if self.per > 30:
+            return "High"
 
-        return "Average market confidence"
+        return "-"
 
     def growth_analysis(self):
         if self.price_earnings_growth_ratio is None:
@@ -346,7 +351,7 @@ class StockAnalysis(object):
         if self.price_sales_ratio < 1.5:
             return "Low price"
 
-        if self.price_sales_ratio > 2:
+        if self.price_sales_ratio > 5:
             return "High price"
 
-        return "Middle"
+        return "-"
