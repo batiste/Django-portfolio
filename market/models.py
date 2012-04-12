@@ -217,7 +217,7 @@ class StockAnalysis(object):
             value_score += 100 / self.per
 
         # low volatility is preferable
-        if self.per is not None:
+        if self.volatility is not None:
             value_score += normalize(50, self.volatility,
                 bigger_better=False, limits=[0, 1000]) / 10.0
 
@@ -225,6 +225,13 @@ class StockAnalysis(object):
         if self.price_52_percent() is not None:
             value_score += normalize(50, self.price_52_percent(),
                 bigger_better=False, limits=[0, 100]) / 40.0
+
+        # PEG Ratio of 2 to 3 is considered OK. A PEG Ratio above 3 usually
+        # means that the company’s stock is over priced
+        if self.price_earnings_growth_ratio is not None:
+            value_score += normalize(2.5, self.self.price_earnings_growth_ratio,
+                bigger_better=False, limits=[0, 10])
+
 
         if self.dividend_yield is not None:
             # dividend yield is a important factor
@@ -243,6 +250,8 @@ class StockAnalysis(object):
             # the past cannot predict the future: 100% growth == 5 points
             value_score += normalize(0, self.trend['year_average_change'],
                 bigger_better=True) / 20.0
+
+A PEG Ratio of 2 to 3 is considered OK. A PEG Ratio above 3 usually means that the company’s stock is over priced
 
         self.value_score = value_score
 
@@ -324,14 +333,11 @@ class StockAnalysis(object):
         if self.price_earnings_growth_ratio is None:
              return "-"
 
-        if self.price_earnings_growth_ratio < 0.8:
-            return "Strong growth"
+        if self.price_earnings_growth_ratio < 2:
+            return "Good"
 
-        if self.price_earnings_growth_ratio < 0.95:
-            return "Growth"
-
-        if self.price_earnings_growth_ratio > 1:
-            return "-"
+        if self.price_earnings_growth_ratio > 3:
+            return "Over priced"
 
         return "-"
 
