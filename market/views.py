@@ -190,7 +190,6 @@ def update_shares(request, portfolio_pk):
         stock = pstock.stock
         answer = ystockquote.get(stock.name)
         stock.last_price = convert_number(answer['price'])
-
         stock.price_sales_ratio = convert_number(answer['price_sales_ratio'])
         stock.dividend_yield = convert_number(answer['dividend_yield'])
 
@@ -198,10 +197,27 @@ def update_shares(request, portfolio_pk):
     return http.HttpResponseRedirect('..')
 
 
-def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
+def update_(request, portfolio_pk):
+
+    portfolio = Portfolio.objects.get(pk=portfolio_pk)
+    check_ownership(request, portfolio)
+    pstocks = PortfolioStock.objects.filter(portfolio=portfolio)
+    for pstock in pstocks:
+        analyze_stock(pstock)
+    return http.HttpResponseRedirect('..')
+
+
+def analyze_stock_view(request, portfolio_pk, portfolio_stock_pk):
 
     pstock = PortfolioStock.objects.get(pk=portfolio_stock_pk)
     check_ownership(request, pstock.portfolio)
+
+    c = analyze_stock(pstock)
+
+    return render_to_response('analysis.html', c)
+
+
+def analyze_stock(pstock):
 
     days = 1000
     now = datetime.datetime.now()
@@ -209,8 +225,12 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
 
     stock = pstock.stock
     infos = ystockquote.get(stock.name)
-    #print infos['test']
     stock_analysis = StockAnalysis(infos)
+
+    # update important fields
+    stock.last_price = convert_number(answer['price'])
+    stock.price_sales_ratio = convert_number(answer['price_sales_ratio'])
+    stock.dividend_yield = convert_number(answer['dividend_yield'])
 
     historical_prices = ystockquote.legacy.get_historical_prices(stock.name,
         year_before.strftime('%Y%m%d'), now.strftime('%Y%m%d'))
@@ -244,7 +264,6 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
     stock_analysis.volatility = volatilities[1]['volatility']
     stock.volatility = stock_analysis.volatility
 
-
     start = 0
     interval = int(len(history) / 5.0)
     price_trends = []
@@ -261,7 +280,7 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
     stock.value_score = stock_analysis.value_score_analysis()
     stock.save()
 
-    c = {
+    return {
         'price_trends':price_trends,
         'stock':stock,
         'infos':infos,
@@ -270,7 +289,6 @@ def analyze_stock(request, portfolio_pk, portfolio_stock_pk):
         'days':days,
         'history': history
     }
-    return render_to_response('analysis.html', c)
 
 
 def calculate_historical_volatility(history):
