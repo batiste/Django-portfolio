@@ -197,6 +197,7 @@ class StockAnalysis(object):
         self.price = convert_number(infos['price'])
         self.high_52 = convert_number(infos['52_week_high'])
         self.low_52 = convert_number(infos['52_week_low'])
+        self.trend = None
 
         self.price_book_ratio = convert_number(infos['price_book_ratio'])
 
@@ -216,12 +217,14 @@ class StockAnalysis(object):
             value_score += 100 / self.per
 
         # low volatility is preferable
-        value_score += normalize(50, self.volatility,
-            bigger_better=False, limits=[0, 1000]) / 10.0
+        if self.per is not None:
+            value_score += normalize(50, self.volatility,
+                bigger_better=False, limits=[0, 1000]) / 10.0
 
         # could it be an opportunity on 52 weeks ?
-        value_score += normalize(50, self.price_52_percent(),
-            bigger_better=False, limits=[0, 100]) / 40.0
+        if self.per is not None:
+            value_score += normalize(50, self.price_52_percent(),
+                bigger_better=False, limits=[0, 100]) / 40.0
 
         if self.dividend_yield is not None:
             # dividend yield is a important factor
@@ -236,9 +239,10 @@ class StockAnalysis(object):
             value_score += normalize(1.5, self.price_sales_ratio,
                 bigger_better=False, limits=[0, 5]) * 2
 
-        # the past cannot predict the future: 100% growth == 5 points
-        value_score += normalize(0, self.trend['year_average_change'],
-            bigger_better=True) / 20.0
+        if self.trend is not None:
+            # the past cannot predict the future: 100% growth == 5 points
+            value_score += normalize(0, self.trend['year_average_change'],
+                bigger_better=True) / 20.0
 
         self.value_score = value_score
 
@@ -280,7 +284,10 @@ class StockAnalysis(object):
         if self.high_52 is None or self.low_52 is None:
             return 50
         max_value = self.high_52 - self.low_52
+        if max_value == 0:
+            return None
         current_value = self.price - self.low_52
+
         percent_low = int(current_value / max_value * 100)
         return percent_low
 

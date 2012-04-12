@@ -238,45 +238,50 @@ def analyze_stock(pstock):
     #[['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Adj Clos']
     history = []
     historical_prices = historical_prices[1:]
+    has_history = True
     for p in historical_prices:
         # error index out of range here
+        if(len(p) == 1):
+            has_history = False
+            break
         close_v = float(p[4])
         date = datetime.datetime.strptime(p[0],'%Y-%m-%d')
         history.append({"date":date, "close_value":close_v})
 
-    # today first
-    history = sorted(history, key=lambda p: p['date'])
-    assert history[1]['date'] > history[0]['date']
-
+    price_trends = []
     volatilities = [
         {'days':100},
         {'days':300},
         {'days':600},
     ]
+    if has_history:
+        # today first
+        history = sorted(history, key=lambda p: p['date'])
+        assert history[1]['date'] > history[0]['date']
 
-    for v in volatilities:
-        if len(history) < v['days']:
-            v['days'] = len(history)
+        for v in volatilities:
+            if len(history) < v['days']:
+                v['days'] = len(history)
 
-        v['volatility'] = round(calculate_historical_volatility(history[-v['days']:]), 2)
-        v['start_date'] = history[-v['days']:][0]['date']
+            v['volatility'] = round(calculate_historical_volatility(history[-v['days']:]), 2)
+            v['start_date'] = history[-v['days']:][0]['date']
 
-    stock_analysis.volatility = volatilities[1]['volatility']
-    stock.volatility = stock_analysis.volatility
+        stock_analysis.volatility = volatilities[1]['volatility']
+        stock.volatility = stock_analysis.volatility
 
-    start = 0
-    interval = int(len(history) / 5.0)
-    price_trends = []
-    while len(history) > (start + interval) and interval > 0:
-        trend = calculate_historical_price_trend(history[start:start+interval])
+        start = 0
+        interval = int(len(history) / 5.0)
+        while len(history) > (start + interval) and interval > 0:
+            trend = calculate_historical_price_trend(history[start:start+interval])
+            price_trends.append(trend)
+            start = start + interval
+            #if len(history) < (start + interval):
+            #    interval = len(history) - start - 1
+
+        trend = calculate_historical_price_trend(history)
         price_trends.append(trend)
-        start = start + interval
-        #if len(history) < (start + interval):
-        #    interval = len(history) - start - 1
+        stock_analysis.trend = trend
 
-    trend = calculate_historical_price_trend(history)
-    price_trends.append(trend)
-    stock_analysis.trend = trend
     stock.value_score = stock_analysis.value_score_analysis()
     stock.save()
 
