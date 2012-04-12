@@ -197,7 +197,7 @@ def update_shares(request, portfolio_pk):
     return http.HttpResponseRedirect('..')
 
 
-def update_(request, portfolio_pk):
+def update_shares(request, portfolio_pk):
 
     portfolio = Portfolio.objects.get(pk=portfolio_pk)
     check_ownership(request, portfolio)
@@ -228,9 +228,9 @@ def analyze_stock(pstock):
     stock_analysis = StockAnalysis(infos)
 
     # update important fields
-    stock.last_price = convert_number(answer['price'])
-    stock.price_sales_ratio = convert_number(answer['price_sales_ratio'])
-    stock.dividend_yield = convert_number(answer['dividend_yield'])
+    stock.last_price = convert_number(infos['price'])
+    stock.price_sales_ratio = convert_number(infos['price_sales_ratio'])
+    stock.dividend_yield = convert_number(infos['dividend_yield'])
 
     historical_prices = ystockquote.legacy.get_historical_prices(stock.name,
         year_before.strftime('%Y%m%d'), now.strftime('%Y%m%d'))
