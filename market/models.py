@@ -222,7 +222,7 @@ class StockAnalysis(object):
                 bigger_better=False, limits=[0, 1000]) / 10.0
 
         # could it be an opportunity on 52 weeks ?
-        if self.per is not None:
+        if self.price_52_percent() is not None:
             value_score += normalize(50, self.price_52_percent(),
                 bigger_better=False, limits=[0, 100]) / 40.0
 
