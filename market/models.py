@@ -227,9 +227,9 @@ class StockAnalysis(object):
                 bigger_better=False, limits=[0, 100]) / 40.0
 
         # PEG Ratio of 2 to 3 is considered OK. A PEG Ratio above 3 usually
-        # means that the company’s stock is over priced
+        # means that the company's stock is over priced
         if self.price_earnings_growth_ratio is not None:
-            value_score += normalize(2.5, self.self.price_earnings_growth_ratio,
+            value_score += normalize(2.5, self.price_earnings_growth_ratio,
                 bigger_better=False, limits=[0, 10])
 
 
@@ -250,8 +250,6 @@ class StockAnalysis(object):
             # the past cannot predict the future: 100% growth == 5 points
             value_score += normalize(0, self.trend['year_average_change'],
                 bigger_better=True) / 20.0
-
-A PEG Ratio of 2 to 3 is considered OK. A PEG Ratio above 3 usually means that the company’s stock is over priced
 
         self.value_score = value_score
 
