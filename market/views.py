@@ -136,6 +136,7 @@ def portfolio(request, portfolio_pk):
 
     quote_name = request.POST.get('quote', None)
     if quote_name:
+        quote_name = quote_name.upper()
         answer = ystockquote.get(quote_name)
         if answer["stock_exchange"] != '"N/A"':
             try:

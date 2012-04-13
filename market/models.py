@@ -214,7 +214,7 @@ class StockAnalysis(object):
 
         # price / earnings is an important ratio
         if self.per is not None:
-            value_score += 100 / self.per
+            value_score += 100.0 / self.per
 
         # low volatility is preferable
         if self.volatility is not None:
