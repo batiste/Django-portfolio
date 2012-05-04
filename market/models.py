@@ -230,7 +230,7 @@ class StockAnalysis(object):
         # means that the company's stock is over priced
         if self.price_earnings_growth_ratio is not None:
             value_score += normalize(2.5, self.price_earnings_growth_ratio,
-                bigger_better=False, limits=[0, 10])
+                bigger_better=False, limits=[0, 100])
 
 
         if self.dividend_yield is not None:
@@ -244,7 +244,7 @@ class StockAnalysis(object):
         if self.price_sales_ratio is not None:
             # price to sales is an important factor
             value_score += normalize(1.5, self.price_sales_ratio,
-                bigger_better=False, limits=[0, 5]) * 2
+                bigger_better=False, limits=[0, 100]) * 2
 
         if self.trend is not None:
             # the past cannot predict the future: 100% growth == 5 points
