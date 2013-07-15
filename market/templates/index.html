@@ -48,17 +48,17 @@ Performance
 <div class="span6">
 
 {% if authenticated %}
-<a href="{% url portfolio_account %}" class="btn">Manage my account</a>
+<a href="{% url "portfolio_account" %}" class="btn">Manage my account</a>
 {% else %}
 <h3>Login</h3>
-<form action="{% url portfolio_login %}" method="post">
+<form action="{% url "portfolio_login" %}" method="post">
 {% csrf_token %}
 <label for="email">Email</label><input type="text" name="email" value="" id="email" />
 <label for="password">Password</label><input type="password" name="password" value="" id="password" />
 <p><input type="submit"  class="btn" value="Login"></p>
 </form>
 
-<a href="{% url portfolio_account %}" class="btn">Create an account</a>
+<a href="{% url "portfolio_account" %}" class="btn">Create an account</a>
 
 {% endif %}
 

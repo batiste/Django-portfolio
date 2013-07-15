@@ -108,7 +108,7 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-ROOT_URLCONF = 'portfolio.urls'
+ROOT_URLCONF = 'market.urls'
 
 MEDIA_ROOT = ''
 

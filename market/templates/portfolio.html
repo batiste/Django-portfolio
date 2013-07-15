@@ -49,12 +49,12 @@ Company quote <input name="quote" type="text" class="span2" placeholder=""> <inp
 
     <td>
 <div class="btn-group">
-    <a class="btn" href="{% url portfolio_analyse_stock portfolio.pk stock.pk %}">Analyse</a>
-    <a class="btn btn-warning" href="{% url portfolio_buy portfolio.pk stock.pk %}">Buy</a>
+    <a class="btn" href="{% url "portfolio_analyse_stock" portfolio.pk stock.pk %}">Analyse</a>
+    <a class="btn btn-warning" href="{% url "portfolio_buy" portfolio.pk stock.pk %}">Buy</a>
     {% if stock.shares_owned == 0 %}
-    <a class="btn" href="{% url portfolio_remove_stock portfolio.pk stock.pk %}">Remove</a>
+    <a class="btn" href="{% url "portfolio_remove_stock" portfolio.pk stock.pk %}">Remove</a>
     {% else %}
-    <a href="{% url portfolio_sell portfolio.pk stock.pk %}" class="btn btn-danger">Sell</a>
+    <a href="{% url "portfolio_sell" portfolio.pk stock.pk %}" class="btn btn-danger">Sell</a>
     {% endif %}
 </div>
 
@@ -78,7 +78,7 @@ Company quote <input name="quote" type="text" class="span2" placeholder=""> <inp
     <td>{{ total_spent }}</td>
     <td>{{ total_value }}</td>
     <td class="{% if profit < 0 %}lose{% else %}win{% endif %}"><strong>{{ profit }}</strong></td>
-    <td><a href="{% url portfolio_update_shares portfolio.pk %}" class="btn">Update</a></td>
+    <td><a href="{% url "portfolio_update_shares" portfolio.pk %}" class="btn">Update</a></td>
 </tr>
 </tfoot>
 
