@@ -63,14 +63,14 @@ class Portfolio(models.Model):
             total_value += s.current_value()
             total_spent += s.money_spent()
 
-        profit = total_value - total_spent
+        profit = round(total_value - total_spent, 2)
         return total_value, total_spent, profit
 
     def profit_percent(self):
         total_value, total_spent, profit = self.balance_sheet()
         if total_spent <= 0:
             return 0
-        return profit / total_spent * 100
+        return round(profit / total_spent * 100, 2)
 
 
 class Stock(models.Model):
@@ -125,9 +125,12 @@ class PortfolioStock(models.Model):
         for op in operations:
             total_amount += op.amount
             money_spent += op.amount * op.price
-        current_value = total_amount * self.stock.last_price
+        if self.stock.last_price is not None:
+            current_value = total_amount * self.stock.last_price
+        else:
+            current_value = 0
 
-        profit = current_value - money_spent
+        profit = round(current_value - money_spent, 2)
 
         return total_amount, money_spent, current_value, profit
 

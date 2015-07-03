@@ -148,8 +148,8 @@ def portfolio(request, portfolio_pk):
                     market_cap=convert_number(answer['market_cap']),
                     last_price=convert_number(answer['price'])
                 )
-            PortfolioStock.objects.get_or_create(stock=stock,
-                portfolio=portfolio)
+                PortfolioStock.objects.get_or_create(stock=stock,
+                    portfolio=portfolio)
         else:
             stock_not_found = True
 
@@ -360,7 +360,7 @@ def operation(request, portfolio_pk, portfolio_stock_pk, operation_type):
 
     if operation_type == 'buy':
         if amount > portfolio.cash:
-            raise ValueError("You cannot buy more that you can afford")
+            raise ValueError("You cannot buy more that you can afford %d > %d" % (amount, portfolio.cash))
 
     if confirmed and amount:
         if operation_type == 'sell':
