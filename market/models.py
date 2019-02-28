@@ -30,7 +30,7 @@ def convert_number(number):
     if isinstance(number, (int, float)):
       return number
 
-    if number == "N/A":
+    if number == "N/A" or number is None:
         return None
 
     number = number.lower()
@@ -191,21 +191,20 @@ class StockValue(models.Model):
 
 class StockAnalysis(object):
 
-    def __init__(self, infos):
-        self.cap = convert_number(infos['market_cap'])
-        self.per = convert_number(infos['price_earnings_ratio'])
-        self.price_sales_ratio = convert_number(infos['price_sales_ratio'])
-        self.ebitda = convert_number(infos['ebitda'])
-        self.dividend_yield = convert_number(infos['dividend_yield'])
-        self.price_earnings_growth_ratio = convert_number(infos['price_earnings_growth_ratio'])
+    def __init__(self, yf):
+        self.cap = convert_number(yf.get_market_cap())
+        self.per = convert_number(yf.get_pe_ratio())
+        self.price_sales_ratio = convert_number(yf.get_price_to_sales())
+        self.ebitda = yf.get_ebit()
+        self.dividend_yield = yf.get_annual_avg_div_yield()
+        # self.price_earnings_growth_ratio = convert_number(infos['price_earnings_growth_ratio'])
 
         self.volatility = None
-        self.price = convert_number(infos['price'])
-        self.high_52 = convert_number(infos['52_week_high'])
-        self.low_52 = convert_number(infos['52_week_low'])
-        self.trend = None
+        self.price = convert_number(yf.get_current_price())
+        self.high_52 = convert_number(yf.get_yearly_high())
+        self.low_52 = convert_number(yf.get_yearly_low())
 
-        self.price_book_ratio = convert_number(infos['price_book_ratio'])
+        self.price_book_ratio = convert_number(yf.get_book_value() / float(self.cap))
 
         self.value_score = 0
         self.growth_score = 0
@@ -234,9 +233,9 @@ class StockAnalysis(object):
 
         # PEG Ratio of 2 to 3 is considered OK. A PEG Ratio above 3 usually
         # means that the company's stock is over priced
-        if self.price_earnings_growth_ratio is not None:
-            value_score += normalize(2.5, self.price_earnings_growth_ratio,
-                bigger_better=False, limits=[0, 100])
+        # if self.price_earnings_growth_ratio is not None:
+        #     value_score += normalize(2.5, self.price_earnings_growth_ratio,
+        #         bigger_better=False, limits=[0, 100])
 
 
         if self.dividend_yield is not None:
@@ -251,11 +250,6 @@ class StockAnalysis(object):
             # price to sales is an important factor
             value_score += normalize(1.5, self.price_sales_ratio,
                 bigger_better=False, limits=[0, 100]) * 2
-
-        if self.trend is not None:
-            # the past cannot predict the future: 100% growth == 5 points
-            value_score += normalize(0, self.trend['year_average_change'],
-                bigger_better=True) / 20.0
 
         self.value_score = value_score
 
@@ -334,14 +328,14 @@ class StockAnalysis(object):
         return "-"
 
     def growth_analysis(self):
-        if self.price_earnings_growth_ratio is None:
-             return "-"
+        # if self.price_earnings_growth_ratio is None:
+        #      return "-"
 
-        if self.price_earnings_growth_ratio < 2:
-            return "Good"
+        # if self.price_earnings_growth_ratio < 2:
+        #     return "Good"
 
-        if self.price_earnings_growth_ratio > 3:
-            return "Over priced"
+        # if self.price_earnings_growth_ratio > 3:
+        #     return "Over priced"
 
         return "-"
 
