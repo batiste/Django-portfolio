@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from market.models import Stock, Operation, Portfolio, PortfolioStock, StockAnalysis, convert_number
 from market.authenticate import create_user
 from django.template.context_processors import csrf
-import ystockquote
+from yahoofinancials import YahooFinancials
 import datetime
 import numpy
 import math
@@ -138,21 +138,19 @@ def portfolio(request, portfolio_pk):
     quote_name = request.POST.get('quote', None)
     if quote_name:
         quote_name = quote_name.upper()
-        answer = ystockquote.get(quote_name)
-        if answer["stock_exchange"] != '"N/A"':
-            try:
-                stock = Stock.objects.get(name=quote_name)
-            except Stock.DoesNotExist:
-                stock = Stock.objects.create(
-                    name=quote_name,
-                    stock_exchange=answer['stock_exchange'],
-                    market_cap=convert_number(answer['market_cap']),
-                    last_price=convert_number(answer['price'])
-                )
-                PortfolioStock.objects.get_or_create(stock=stock,
-                    portfolio=portfolio)
-        else:
-            stock_not_found = True
+        yf = YahooFinancials(quote_name)
+        exchange = yf.get_stock_exchange()
+        try:
+            stock = Stock.objects.get(name=quote_name)
+        except Stock.DoesNotExist:
+            stock = Stock.objects.create(
+                name=quote_name,
+                stock_exchange=yf.get_stock_exchange(),
+                market_cap=convert_number(yf.get_market_cap()),
+                last_price=convert_number(yf.get_current_price())
+            )
+            PortfolioStock.objects.get_or_create(stock=stock,
+                portfolio=portfolio)
 
     stocks = PortfolioStock.objects.filter(portfolio=portfolio).order_by("-stock__value_score")
 
@@ -190,10 +188,10 @@ def update_shares(request, portfolio_pk):
     pstocks = PortfolioStock.objects.filter(portfolio=portfolio)
     for pstock in pstocks:
         stock = pstock.stock
-        answer = ystockquote.get(stock.name)
-        stock.last_price = convert_number(answer['price'])
-        stock.price_sales_ratio = convert_number(answer['price_sales_ratio'])
-        stock.dividend_yield = convert_number(answer['dividend_yield'])
+        yf = YahooFinancials(quote_name)
+        stock.last_price = convert_number(yf.get_current_price())
+        stock.price_sales_ratio = convert_number(yf.get_price_to_sales())
+        stock.dividend_yield = convert_number(yf.get_dividend_yield())
 
         stock.save()
     return http.HttpResponseRedirect('..')
@@ -214,7 +212,7 @@ def analyze_stock_view(request, portfolio_pk, portfolio_stock_pk):
     pstock = PortfolioStock.objects.get(pk=portfolio_stock_pk)
     check_ownership(request, pstock.portfolio)
 
-    c = analyze_stock(pstock)
+    # c = analyze_stock(pstock)
 
     return render_to_response('analysis.html', c)
 

@@ -27,6 +27,9 @@ def millify(n):
 
 def convert_number(number):
 
+    if isinstance(number, (int, float)):
+      return number
+
     if number == "N/A":
         return None
 

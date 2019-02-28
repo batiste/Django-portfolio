@@ -11,6 +11,8 @@ import os
 PROJECT_DIR = os.path.dirname(__file__)
 MANAGERS = ADMINS
 
+API_KEY = 'IB0U0Q9YQMFJRKNE'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
