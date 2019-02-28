@@ -1,3 +1,2 @@
-Django==1.5
-South==0.8.4
-numpy==1.8.0
+Django
+numpy

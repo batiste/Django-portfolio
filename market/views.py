@@ -5,12 +5,12 @@ from django.contrib.auth import authenticate, login as django_login, logout as d
 from django.contrib.auth.models import User
 from market.models import Stock, Operation, Portfolio, PortfolioStock, StockAnalysis, convert_number
 from market.authenticate import create_user
-from django.core.context_processors import csrf
+from django.template.context_processors import csrf
 import ystockquote
 import datetime
 import numpy
 import math
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 def check_ownership(request, portfolio=None, pstock=None):
@@ -27,24 +27,24 @@ def index(request):
     initial_cash = request.POST.get('initial_cash', 0)
     if portfolio_name:
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             user = create_user()
-            user = authenticate(user=user)
-            django_login(request, user)
+            authenticate(user=user)
+            django_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
         p = Portfolio.objects.create(name=portfolio_name,
             owner=request.user, cash=initial_cash, initial_cash=initial_cash)
         url = reverse('portfolio', kwargs={'portfolio_pk': p.pk})
         return http.HttpResponseRedirect(url)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         portfolios = Portfolio.objects.filter(owner=request.user)
     else:
         portfolios = []
 
     c = {
         'portfolios':portfolios,
-        'authenticated':request.user.is_authenticated()
+        'authenticated':request.user.is_authenticated
     }
     c.update(csrf(request))
 
@@ -62,9 +62,9 @@ def login(request):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = None
-        user = authenticate(email=email, password=password)
+        authenticate(email=email, password=password)
         if user:
-            result = django_login(request, user)
+            django_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return http.HttpResponseRedirect('..')
         else:
             auth_failed = True
@@ -72,7 +72,7 @@ def login(request):
     c = {
         'email':email,
         'auth_failed':auth_failed,
-        'authenticated':request.user.is_authenticated()
+        'authenticated':request.user.is_authenticated
     }
     c.update(csrf(request))
 
@@ -86,10 +86,11 @@ def logout(request):
 
 def manage_account(request):
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         user = create_user()
-        user = authenticate(user=user)
-        django_login(request, user)
+        authenticate(user=user)
+        print(user)
+        django_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     else:
         user = request.user
 

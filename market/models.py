@@ -51,7 +51,7 @@ def convert_number(number):
 class Portfolio(models.Model):
 
     name = models.CharField(max_length=150, unique=True)
-    owner = models.ForeignKey(User)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     initial_cash = models.FloatField(default=0)
     cash = models.FloatField(default=0)
 
@@ -109,8 +109,8 @@ class PortfolioStock(models.Model):
     A stock within a portfolio.
     """
 
-    portfolio = models.ForeignKey(Portfolio)
-    stock = models.ForeignKey(Stock)
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (("portfolio", "stock"),)
@@ -156,7 +156,7 @@ class Operation(models.Model):
     amount = models.FloatField()
     price = models.FloatField()
     time = models.DateTimeField(auto_now=True)
-    portfolio_stock = models.ForeignKey(PortfolioStock)
+    portfolio_stock = models.ForeignKey(PortfolioStock, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['-time']
@@ -183,7 +183,7 @@ class StockValue(models.Model):
 
     value = models.FloatField()
     time = models.DateTimeField(auto_now=True)
-    stock = models.ForeignKey(Stock)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
 
 
 class StockAnalysis(object):

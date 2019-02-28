@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.contrib.auth.models import User, check_password
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import check_password
 import uuid
 from django.contrib.auth.backends import ModelBackend
 
